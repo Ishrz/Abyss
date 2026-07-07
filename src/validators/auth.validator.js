@@ -23,6 +23,8 @@ export const registerValidator = [
   body("fullname")
     .notEmpty().withMessage("full name is required")
     .isLength({max:10 , min:3}).withMessage("fullname must be max 10 and min 3 charachter long"),
+  body("isSeller")
+    .isBoolean(),
 
 
     validator
