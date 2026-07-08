@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken"
-import userModel from "../models/user.model"
-import { config } from "../config/config"
+import userModel from "../models/user.model.js"
+import { config } from "../config/config.js"
 
 
 const genrateToken = async (user,res,message) => {
@@ -9,7 +9,7 @@ const genrateToken = async (user,res,message) => {
       {
         id: user._id,
       },
-      config.JWT_SECRETE,
+      config.JWT_SECRET,
       { expiresIn: "7D" }
     );
 
@@ -34,19 +34,21 @@ const genrateToken = async (user,res,message) => {
 export const register = async (req,res) =>{
     const {email , contact , fullname , password, isSeller} = req.body
 
+    console.log(email , contact , fullname , password, isSeller)
+
     try {
         const existingUser = await userModel.findOne({
         $or:[{email , contact}]
     })
 
-    if(existingUser) return res.staus(400).json({message: "user already exist"})
+    if(existingUser) return res.status(400).json({message: "user already exist"})
 
     const user = await userModel.create({
         fullname,
         email,
         contact,
         password,
-        role: isSeller ? "seller" : "buyer"
+        role: isSeller === "buyer" ? "buyer" :  "seller"
     })
 
     await genrateToken(user,res,"user resgistered successfully")
@@ -55,11 +57,30 @@ export const register = async (req,res) =>{
         res.status(500).json({
             message:"server error",
             success:false,
-            error:error
+            error:error.message
         })
     }
-    
-
-
-
 }
+
+export const login = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid email or password", success: false });
+        }
+
+        const isMatch = await user.camparePassword(password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid email or password", success: false });
+        }
+
+        await genrateToken(user, res, "user logged in successfully");
+    } catch (error) {
+        res.status(500).json({
+            message: "server error",
+            success: false,
+            error: error.message
+        });
+    }
+};

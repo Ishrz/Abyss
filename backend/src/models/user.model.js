@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
 });
 
 
-userSchema.pre("save" ,async ()=>{
+userSchema.pre("save" ,async function(){
     if(!this.isModified("password")) return
 
     const hashPass = await bcrypt.hash(this.password , 7)
@@ -17,7 +17,7 @@ userSchema.pre("save" ,async ()=>{
 })
 
 
-userSchema.methods.camparePassword = async (password)=>{
+userSchema.methods.camparePassword = async function(password){
         return await bcrypt.compare(password, this.password)
 }
 

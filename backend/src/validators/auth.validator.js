@@ -18,14 +18,18 @@ export const registerValidator = [
     .notEmpty().withMessage("contact number is required")
     .matches(/^\d{10}$/).withMessage("Contact must be a 10-digit number"),
   body("password")
-    .isLength({max:6 , min:3}).withMessage("Password must be max 6 and min 3 charachter long")
+    .isLength({min:6 }).withMessage("Password must be  min 6 charachter long")
     .notEmpty().withMessage("Password is required"),
   body("fullname")
     .notEmpty().withMessage("full name is required")
-    .isLength({max:10 , min:3}).withMessage("fullname must be max 10 and min 3 charachter long"),
-  body("isSeller")
-    .isBoolean(),
+    .isLength({min:3 }).withMessage("fullname must be  min 6 charachter long"),
 
 
     validator
+];
+
+export const loginValidator = [
+  body("email").isEmail().withMessage("Valid email is required"),
+  body("password").notEmpty().withMessage("Password is required"),
+  validator
 ];
