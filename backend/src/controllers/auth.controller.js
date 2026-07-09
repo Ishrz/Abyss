@@ -84,3 +84,26 @@ export const login = async (req, res) => {
         });
     }
 };
+
+export const googleCallback = async (req,res) =>{
+        const {id,displayName,emails,photos} = req.user
+        const email = emails[0].value
+        const photo = photos[0].value
+
+        let user = userModel.fineOne({
+            email
+        })
+        
+        if(!user){
+            user = userModel.create({
+                fullname:displayName,
+                email:email,
+                googleId:id
+            })
+        }
+
+        const token = jwt.sign({id:user._id},config.JWT_SECRET,{expiresIn:"7D"})
+        res.cookie("token", token)
+
+        res.redirect("http//localhost:5173/")
+}
