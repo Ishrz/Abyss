@@ -1,4 +1,5 @@
 import express from "express"
+import { config } from "./config/config.js"
 import morgan from "morgan"
 import cookieParser from "cookie-parser"
 import cors from "cors"
@@ -40,10 +41,14 @@ app.get("/",(req,res)=>{
 
 //Routes imports
 import authrouter from "./routes/auth.route.js"
-import { config } from "./config/config.js"
+import productRouter from "./routes/product.route.js"
 
-
+//authentications route
 app.use("/api/v1/auth" , authrouter)
+
+//prodcut route
+app.use("/api/v1/product" , productRouter)
+
 
 
 
