@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken"
 import { config } from "../config/config"
 
-export const sellerValidator = async (req,res,next) =>{
+export const sellerAuthenticator = async (req,res,next) =>{
     const {token} = req.cookies
 
 

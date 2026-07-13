@@ -1,6 +1,6 @@
 import productModel from "../models/product.model"
 
-export const addProducts = async (req,res) =>{
+export const createProduct = async (req,res) =>{
 
     const {title, description , price, image , seller} = req.body
 
