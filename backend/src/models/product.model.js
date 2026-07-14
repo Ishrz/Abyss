@@ -11,7 +11,7 @@ const productSchema = new mongoose.Schema({
         require:true
     }
     ,
-    descriptioon: {
+    description: {
         type:String,
         require:true
     },
@@ -31,16 +31,12 @@ const productSchema = new mongoose.Schema({
             url:{
                 type:String,
                 require:true
-            },
-            alt:{
-                type:String,
-                require:true
             }
         }
     ]
 })
 
 
-const produtModel = mongoose.model("product",productSchema)
+const productModel = mongoose.model("product",productSchema)
 
 export default productModel
