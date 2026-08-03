@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useAuth from '../hook/useAuth';
 import { Link, useNavigate } from 'react-router';
+import GoogleAuthButton from "./components/GoogleAuthButton.jsx"
 
 function Login() {
   const { handleLogin } = useAuth();
@@ -203,6 +204,7 @@ function Login() {
                 'Login'
               )}
             </button>
+            <GoogleAuthButton mode="signin" onClick={() => window.location.href = '/api/v1/auth/google'} />
           </form>
 
           {/* Footer Link */}
@@ -213,6 +215,7 @@ function Login() {
                 Sign up
               </Link>
             </p>
+            {/* Google signUP */}
           </footer>
         </div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useAuth from '../hook/useAuth';
 import { Link, useNavigate } from 'react-router';
+import GoogleAuthButton from './components/GoogleAuthButton.jsx';
 
 function Register() {
 
@@ -338,6 +339,9 @@ function Register() {
                 'Create Account'
               )}
             </button>
+            <span className= "w-full flex justify-center">
+            <GoogleAuthButton mode="signup" onClick={() => window.location.href = '/api/v1/auth/google'} />
+            </span>
           </form>
 
           {/* Footer Link */}
