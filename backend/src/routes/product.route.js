@@ -11,11 +11,13 @@ const upload = multer({
 
 
 //controllers
-import { createProduct} from "../controllers/product.controller.js"
+import { createProduct, getSellerProduct} from "../controllers/product.controller.js"
 import { sellerAuthenticator} from "../middlewares/auth.middleware.js";
 
 
 productRouter.post("/", sellerAuthenticator, upload.array("images" , 7) , createProduct)
+
+productRouter.get("/seller/products", sellerAuthenticator , getSellerProduct)
 
 
 
