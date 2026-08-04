@@ -90,7 +90,7 @@ export const googleCallback = async (req,res) =>{
         const email = emails[0].value
         const photo = photos[0].value
 
-        let user = userModel.findOne({
+        let user =await userModel.findOne({
             email
         })
         
@@ -105,7 +105,7 @@ export const googleCallback = async (req,res) =>{
         const token = jwt.sign({id:user._id},config.JWT_SECRET,{expiresIn:"7D"})
         res.cookie("token", token)
 
-        res.redirect("/")
+        res.redirect("http://localhost:5173/")
 }
 
 export const getMe = async (req,res) =>{
