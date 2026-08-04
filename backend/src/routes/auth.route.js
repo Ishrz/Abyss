@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { register, login, googleCallback } from "../controllers/auth.controller.js";
+import { register, login, googleCallback, getMe } from "../controllers/auth.controller.js";
 import { registerValidator, loginValidator } from "../validators/auth.validator.js"
 import  passport from "passport";
 import { config } from "../config/config.js";
+import { authenticateUser } from "../middlewares/auth.middleware.js";
 
 const authrouter = Router()
 
@@ -22,6 +23,8 @@ authrouter.get("/google/callback",
         }),
         googleCallback
 )
+
+authrouter.get("/me", authenticateUser , getMe )
 
 
 

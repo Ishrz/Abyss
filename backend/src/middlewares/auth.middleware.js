@@ -2,6 +2,40 @@ import jwt from "jsonwebtoken"
 import { config } from "../config/config.js"
 import userModel from "../models/user.model.js"
 
+export const authenticateUser = async (req,res,next) =>{
+    const {token} = req.cookies
+
+    if(!token){
+        return res.status(401).json({
+            message:"Unathorized user",
+            success:true
+        })
+    }
+
+    try{
+        const decoded = jwt.verify(token, config.JWT_SECRET)
+
+        const user = await userModel.findById(decoded.id)
+
+        if(!user){
+            return res.status(401).json({
+                message:"Unathorized access",
+                success:true
+            })
+        }
+
+        req.user= user
+        next()
+
+
+    }catch(err){
+        return res.status(401).json({
+            message:"Unathorized access",
+            success:true
+        })
+    }
+}
+
 export const sellerAuthenticator = async (req,res,next) =>{
     const {token} = req.cookies
 
