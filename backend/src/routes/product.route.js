@@ -11,7 +11,7 @@ const upload = multer({
 
 
 //controllers
-import { createProduct, getSellerProduct} from "../controllers/product.controller.js"
+import { createProduct, getAllProduts, getSellerProduct} from "../controllers/product.controller.js"
 import { sellerAuthenticator} from "../middlewares/auth.middleware.js";
 
 
@@ -19,7 +19,7 @@ productRouter.post("/", sellerAuthenticator, upload.array("images" , 7) , create
 
 productRouter.get("/seller/products", sellerAuthenticator , getSellerProduct)
 
-
+productRouter.get("/" , getAllProduts)
 
 
 export default productRouter
