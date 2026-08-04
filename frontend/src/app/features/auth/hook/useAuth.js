@@ -1,5 +1,5 @@
 import {setUser,setLoading,setError} from "../state/auth.slice.js"
-import { register, login } from "../service/auth.api.js"
+import { register, login, getMe } from "../service/auth.api.js"
 import { useDispatch } from "react-redux"
 
 
@@ -23,11 +23,28 @@ const handleLogin = async ({email,password}) => {
 
 }
 
+ const handleGetMe = async () => {
+    try{
+
+    dipstach(setLoading(true))
+    const data = await getMe()
+    dipstach(setUser(data.user))
+    return data.user
+    
+}catch(err){
+    console.log(err)
+    dispatch(setError(err))
+}finally{
+    dipstach(setLoading(false))
+    }
+}
+
 
 
 return {
     handleRegister,
-    handleLogin
+    handleLogin,
+    handleGetMe
 }
 
 }

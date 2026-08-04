@@ -25,3 +25,9 @@ export const login = async ({email,password})=>{
     return response.data
 
 }
+
+export const getMe = async () =>{
+    const response = await authApiInctance.get("/me")
+
+    return response.data
+}
