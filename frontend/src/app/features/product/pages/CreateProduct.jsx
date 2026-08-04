@@ -185,7 +185,7 @@ function CreateProduct() {
       
       // Redirect after 2 seconds
       setTimeout(() => {
-        navigate('/');
+        navigate('/seller/product/dashboard');
       }, 2000);
     } catch (error) {
       setIsSubmitting(false);
