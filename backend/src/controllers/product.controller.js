@@ -71,3 +71,19 @@ export const getAllProduts = async (req,res) => {
     })
 
 }
+
+export const getProdcutDetails = async (req,res) => {
+    const {id} = req.params
+    // console.log(id)
+    const product = await productModel.findById(id)
+
+    if(!product){
+        return res.status(404).josn({message:"Product not found", success:false})
+    }
+
+    res.status(200).json({
+        message:"product details fetched successfully",
+        sucess:true,
+        product
+    })
+}
