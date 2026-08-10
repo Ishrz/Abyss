@@ -2,11 +2,9 @@ import { useSelector } from "react-redux"
 import useProduct from "../hook/useProduct"
 import { useEffect, useState } from "react"
 import { Link } from "react-router"
-
+import { useNavigate } from "react-router"
 // ─── Constants ───────────────────────────────────────────────────────────────
 const currencySymbols = { INR: "₹", USD: "$", EUR: "€", GBP: "£" }
-
-const CATEGORIES = ["All", "Clothing", "Electronics", "Footwear", "Accessories"]
 
 // ─── Skeleton Card ───────────────────────────────────────────────────────────
 const SkeletonCard = () => (
@@ -36,13 +34,16 @@ const NoImagePlaceholder = () => (
 
 // ─── Product Card ────────────────────────────────────────────────────────────
 const ProductCard = ({ product }) => {
+    const navigate=useNavigate()
     const [imgError, setImgError] = useState(false)
     const [isWishlisted, setIsWishlisted] = useState(false)
     const symbol = currencySymbols[product.price?.currency] || product.price?.currency || ""
     const hasImage = product.images?.length > 0 && !imgError
 
     return (
-        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.012] transition-all duration-300 group flex flex-col cursor-pointer">
+        <div
+        onClick={()=> navigate(`/product/${product.id || product._id}`)}
+         className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.012] transition-all duration-300 group flex flex-col cursor-pointer">
 
             {/* Image wrapper */}
             <div className="relative overflow-hidden">
@@ -150,12 +151,13 @@ const Hero = ({ productCount }) => (
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 const Home = () => {
+
+    const navigate = useNavigate()
     const { handleGetAllProducts } = useProduct()
     const products = useSelector(state => state.product.products)
     const user = useSelector( state => state.auth.user)
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-    const [activeCategory, setActiveCategory] = useState("All")
     const [sortBy, setSortBy] = useState("newest")
 
     useEffect(() => {
@@ -248,22 +250,6 @@ const Home = () => {
                         <option value="price-asc">Price: Low to High</option>
                         <option value="price-desc">Price: High to Low</option>
                     </select>
-                </div>
-
-                {/* ── Category Pills ── */}
-                <div className="flex gap-2 flex-wrap mb-8">
-                    {CATEGORIES.map(cat => (
-                        <button
-                            key={cat}
-                            onClick={() => setActiveCategory(cat)}
-                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${activeCategory === cat
-                                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20"
-                                    : "bg-white text-slate-600 border-slate-200 hover:border-indigo-400 hover:text-indigo-600"
-                                }`}
-                        >
-                            {cat}
-                        </button>
-                    ))}
                 </div>
 
                 {/* ── Product Grid / States ── */}
