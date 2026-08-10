@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import useProduct from "../hook/useProduct"
 import { useSelector } from "react-redux"
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 
 const currencySymbols = {
   INR: "₹",
@@ -50,13 +50,16 @@ const StatCard = ({ icon, label, value, sub }) => (
 
 // ─── Product Card ────────────────────────────────────────────────────────────
 const ProductCard = ({ product }) => {
+  const navigate = useNavigate()
   const [imgError, setImgError] = useState(false)
   const symbol = currencySymbols[product.price?.currency] || product.price?.currency || ""
   const hasImage = product.images?.length > 0 && !imgError
   const totalImages = product.images?.length || 0
 
   return (
-    <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.015] hover:-translate-y-0.5 transition-all duration-200 group flex flex-col">
+    <div
+    onClick={()=> navigate(`/seller/product/${product._id}`)} 
+    className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.015] hover:-translate-y-0.5 transition-all duration-200 group flex flex-col">
       {/* Image */}
       <div className="relative overflow-hidden">
         {hasImage ? (
