@@ -99,7 +99,7 @@ const ProductDetails = () => {
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 lg:gap-16">
 
                         {/* ── Image Gallery ── */}
                         <div className="space-y-4">
@@ -129,8 +129,8 @@ const ProductDetails = () => {
                                             key={img._id || i}
                                             onClick={() => { setImgError(false); setActiveImage(i) }}
                                             className={`w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === i
-                                                    ? "border-indigo-600 ring-2 ring-indigo-600/20"
-                                                    : "border-slate-200 hover:border-indigo-400"
+                                                ? "border-indigo-600 ring-2 ring-indigo-600/20"
+                                                : "border-slate-200 hover:border-indigo-400"
                                                 }`}
                                         >
                                             <img src={img.url} alt={`${product.title} ${i + 1}`} className="w-full h-full object-cover" />
