@@ -31,3 +31,18 @@ export const getsellerProductDetails = async (productId)=>{
     const response = await productApiInctance.get(`/seller/product/${productId}`)
     return response.data
 }
+
+export const addProductVariant = async (productId, formData) =>{
+    const response = await productApiInctance.post(`/seller/product/${productId}/variants`, formData)
+    return response.data
+}
+
+export const updateProductVariant = async (productId, variantId, stock) =>{
+    const response = await productApiInctance.patch(`/seller/product/${productId}/variants/${variantId}`, { stock })
+    return response.data
+}
+
+export const deleteProductVariant = async (productId, variantId) =>{
+    const response = await productApiInctance.delete(`/seller/product/${productId}/variants/${variantId}`)
+    return response.data
+}
