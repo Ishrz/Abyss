@@ -104,3 +104,115 @@ export const getSellerProductDetail = async (req,res) =>{
     })
 
 }
+
+export const addVariant = async (req,res) =>{
+    const { id } = req.params
+    const { attributes, stock, priceAmount, priceCurrency } = req.body
+
+    const product = await productModel.findById(id)
+
+    if(!product){
+        return res.status(404).json({message:"Product not found", success:false})
+    }
+
+    if(String(product.seller) !== String(req.user._id)){
+        return res.status(403).json({message:"Forbidden: you can only modify your own products", success:false})
+    }
+
+    let imageUrls = []
+    if(req.files && req.files.length > 0){
+        imageUrls = await Promise.all(req.files.map( async (file) =>{
+            const img = await imageKitUpload({
+                buffer:file.buffer,
+                fileName:file.originalname || "variant"
+            })
+            return { url: img.url }
+        }))
+    }
+
+    let parsedAttributes = {}
+    if(attributes){
+        if(typeof attributes === "string"){
+            try {
+                parsedAttributes = JSON.parse(attributes)
+            } catch (err) {
+                parsedAttributes = {}
+            }
+        } else {
+            parsedAttributes = attributes
+        }
+    }
+
+    product.variants.push({
+        images: imageUrls,
+        stock: Number(stock) || 0,
+        attributes: parsedAttributes,
+        price:{
+            amount: priceAmount,
+            currency: priceCurrency || "INR"
+        }
+    })
+
+    await product.save()
+
+    res.status(201).json({
+        message:"Variant added successfully",
+        success:true,
+        product
+    })
+}
+
+export const updateVariant = async (req,res) =>{
+    const { id, variantId } = req.params
+    const { stock } = req.body
+
+    const product = await productModel.findById(id)
+
+    if(!product){
+        return res.status(404).json({message:"Product not found", success:false})
+    }
+
+    if(String(product.seller) !== String(req.user._id)){
+        return res.status(403).json({message:"Forbidden: you can only modify your own products", success:false})
+    }
+
+    const variant = product.variants.id(variantId)
+
+    if(!variant){
+        return res.status(404).json({message:"Variant not found", success:false})
+    }
+
+    variant.stock = Number(stock) || 0
+
+    await product.save()
+
+    res.status(200).json({
+        message:"Variant stock updated successfully",
+        success:true,
+        product
+    })
+}
+
+export const deleteVariant = async (req,res) =>{
+    const { id, variantId } = req.params
+
+    const product = await productModel.findById(id)
+
+    if(!product){
+        return res.status(404).json({message:"Product not found", success:false})
+    }
+
+    if(String(product.seller) !== String(req.user._id)){
+        return res.status(403).json({message:"Forbidden: you can only modify your own products", success:false})
+    }
+
+    product.variants = product.variants.filter(v => String(v._id) !== variantId)
+
+    await product.save()
+
+    res.status(200).json({
+        message:"Variant deleted successfully",
+        success:true,
+        product
+    })
+}

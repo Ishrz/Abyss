@@ -11,7 +11,7 @@ const upload = multer({
 
 
 //controllers
-import { createProduct, getAllProduts, getProdcutDetails, getSellerProduct, getSellerProductDetail} from "../controllers/product.controller.js"
+import { createProduct, getAllProduts, getProdcutDetails, getSellerProduct, getSellerProductDetail, addVariant, updateVariant, deleteVariant} from "../controllers/product.controller.js"
 import { sellerAuthenticator} from "../middlewares/auth.middleware.js";
 
 
@@ -21,6 +21,15 @@ productRouter.post("/", sellerAuthenticator, upload.array("images" , 7) , create
 productRouter.get("/seller/products", sellerAuthenticator , getSellerProduct)
 
 productRouter.get("/seller/product/:id" , sellerAuthenticator , getSellerProductDetail)
+
+//add variant to seller's product
+productRouter.post("/seller/product/:id/variants" , sellerAuthenticator , upload.array("images" , 7) , addVariant)
+
+//update a variant's stock
+productRouter.patch("/seller/product/:id/variants/:variantId" , sellerAuthenticator , updateVariant)
+
+//delete a variant
+productRouter.delete("/seller/product/:id/variants/:variantId" , sellerAuthenticator , deleteVariant)
 
 productRouter.get("/" , getAllProduts)
 
