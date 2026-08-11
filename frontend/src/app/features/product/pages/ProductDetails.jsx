@@ -45,6 +45,7 @@ const ProductDetails = () => {
     const [imgError, setImgError] = useState(false)
     const [activeImage, setActiveImage] = useState(0)
     const [qty, setQty] = useState(1)
+    const [selections, setSelections] = useState({})
 
     async function fetchProductDetails() {
         const data = await handleProductDetails(productId)
@@ -54,11 +55,71 @@ const ProductDetails = () => {
 
     useEffect(() => {
         fetchProductDetails()
+        setSelections({})
+        setActiveImage(0)
     }, [productId])
 
-    const symbol = currencySymbols[product?.price?.currency] || product?.price?.currency || ""
-    const images = product?.images || []
-    const hasImage = images.length > 0 && !imgError
+    // ── Variant logic ──
+    // No selection = main product shown by default.
+    const variants = product?.variants || []
+
+    const attributeTypes = [...new Set(
+        variants.flatMap(v => Object.keys(v?.attributes || {}))
+    )]
+
+    const optionsByType = {}
+    attributeTypes.forEach(type => {
+        optionsByType[type] = [...new Set(
+            variants
+                .filter(v => v?.attributes?.[type])
+                .map(v => v.attributes[type])
+        )]
+    })
+
+    // A variant matches when ALL its attributes are present in the current selections.
+    // Among matches, the most specific variant (most attributes) wins.
+    let selectedVariant = null
+    if (variants.length > 0 && Object.keys(selections).length > 0) {
+        const matches = variants.filter(v => {
+            const attrs = v?.attributes || {}
+            return Object.entries(attrs).every(([key, value]) => selections[key] === value)
+        })
+        matches.sort((a, b) => Object.keys(b?.attributes || {}).length - Object.keys(a?.attributes || {}).length)
+        selectedVariant = matches[0] || null
+    }
+
+    const activePrice = selectedVariant?.price || product?.price
+    const activeStock = selectedVariant != null ? selectedVariant.stock : null
+
+    const activePriceSymbol = currencySymbols[activePrice?.currency] || activePrice?.currency || ""
+
+    // All photos (main product + every variant) deduplicated by url.
+    const galleryImages = [
+        ...(product?.images || []),
+        ...(variants.flatMap(v => v?.images || []))
+    ].filter((img, i, arr) => arr.findIndex(x => x.url === img.url) === i)
+
+    function handleSelect(type, value) {
+        setSelections(prev => {
+            const next = { ...prev }
+            if (next[type] === value) delete next[type]
+            else next[type] = value
+            return next
+        })
+        setImgError(false)
+    }
+
+    function handleReset() {
+        setSelections({})
+        setImgError(false)
+    }
+
+    useEffect(() => {
+        if (!product) return
+        const firstUrl = (selectedVariant?.images?.[0] || product?.images?.[0])?.url
+        const idx = galleryImages.findIndex(g => g.url === firstUrl)
+        setActiveImage(idx >= 0 ? idx : 0)
+    }, [selectedVariant, product])
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
@@ -103,11 +164,15 @@ const ProductDetails = () => {
 
                         {/* ── Image Gallery ── */}
                         <div className="space-y-4">
+                            {(() => {
+                                const activeIdx = galleryImages.length > 0 ? Math.min(activeImage, galleryImages.length - 1) : 0
+                                return (
+                                    <>
                             <div className="relative overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white">
-                                {hasImage ? (
+                                {galleryImages.length > 0 && !imgError ? (
                                     <img
-                                        key={activeImage}
-                                        src={images[activeImage].url}
+                                        key={activeIdx}
+                                        src={galleryImages[activeIdx]?.url}
                                         alt={product.title}
                                         onError={() => setImgError(true)}
                                         className="w-full aspect-square object-cover"
@@ -115,20 +180,20 @@ const ProductDetails = () => {
                                 ) : (
                                     <NoImagePlaceholder />
                                 )}
-                                {images.length > 1 && (
+                                {galleryImages.length > 1 && (
                                     <span className="absolute bottom-4 right-4 bg-black/50 text-white text-[11px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm">
-                                        {activeImage + 1} / {images.length}
+                                        {activeIdx + 1} / {galleryImages.length}
                                     </span>
                                 )}
                             </div>
 
-                            {images.length > 1 && (
+                            {galleryImages.length > 0 && (
                                 <div className="flex gap-3 overflow-x-auto py-1">
-                                    {images.map((img, i) => (
+                                    {galleryImages.map((img, i) => (
                                         <button
                                             key={img._id || i}
                                             onClick={() => { setImgError(false); setActiveImage(i) }}
-                                            className={`w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === i
+                                            className={`w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeIdx === i
                                                 ? "border-indigo-600 ring-2 ring-indigo-600/20"
                                                 : "border-slate-200 hover:border-indigo-400"
                                                 }`}
@@ -138,6 +203,9 @@ const ProductDetails = () => {
                                     ))}
                                 </div>
                             )}
+                                    </>
+                                )
+                            })()}
                         </div>
 
                         {/* ── Product Info ── */}
@@ -152,14 +220,67 @@ const ProductDetails = () => {
                                 {product.title}
                             </h1>
 
-                            <div className="flex items-center gap-4 mb-6">
+                            <div className="flex flex-wrap items-center gap-4 mb-6">
                                 <span className="text-3xl md:text-4xl font-extrabold text-indigo-600 tracking-tight">
-                                    {symbol}{Number(product.price?.amount).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                    {activePriceSymbol}{Number(activePrice?.amount).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </span>
                                 <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                                    {product.price?.currency}
+                                    {activePrice?.currency}
                                 </span>
+                                {selectedVariant != null && (
+                                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${selectedVariant.stock > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                                        {selectedVariant.stock > 0 ? `${selectedVariant.stock} in stock` : "Out of stock"}
+                                    </span>
+                                )}
                             </div>
+
+                            {attributeTypes.length > 0 && (
+                                <div className="border-t border-slate-100 pt-6 mb-6 space-y-5">
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2.5">
+                                            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Variants</h2>
+                                            {Object.keys(selections).length > 0 && (
+                                                <button
+                                                    onClick={handleReset}
+                                                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
+                                                >
+                                                    Reset to Default
+                                                </button>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={handleReset}
+                                            className={`px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all active:scale-95 ${Object.keys(selections).length === 0
+                                                ? "border-indigo-600 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                                                : "border-slate-200 bg-white text-slate-700 hover:border-indigo-400"
+                                                }`}
+                                        >
+                                            Default
+                                        </button>
+                                    </div>
+                                    {attributeTypes.map(type => (
+                                        <div key={type}>
+                                            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">
+                                                {type}{selections[type] ? <span className="text-slate-700 normal-case font-semibold">: {selections[type]}</span> : null}
+                                            </h2>
+                                            <div className="flex flex-wrap gap-2.5">
+                                                {optionsByType[type].map(option => (
+                                                    <button
+                                                        key={option}
+                                                        onClick={() => handleSelect(type, option)}
+                                                        className={`px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all active:scale-95 ${selections[type] === option
+                                                            ? "border-indigo-600 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                                                            : "border-slate-200 bg-white text-slate-700 hover:border-indigo-400"
+                                                            }`}
+                                                    >
+                                                        {option}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             <div className="border-t border-slate-100 pt-6 mb-6">
                                 <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Description</h2>
