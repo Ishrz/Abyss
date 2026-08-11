@@ -11,7 +11,7 @@ const validateRequest = async (req,res,next)=>{
     next()
 }
 
-const cartValidator = [
+export const cartValidator = [
     param("productId").isMongoId().withMessage("Invalid Product Id"),
     param("variantId").optional().isMongoId().withMessage("Invalid Variant Id"),
     body("quantity").optional().isInt({min:1}).withMessage("Quatity atleast must be 1"),
