@@ -42,6 +42,7 @@ app.get("/",(req,res)=>{
 //Routes imports
 import authrouter from "./routes/auth.route.js"
 import productRouter from "./routes/product.route.js"
+import cartRouter from "./routes/cart.route.js"
 
 //authentications route
 app.use("/api/v1/auth" , authrouter)
@@ -49,7 +50,8 @@ app.use("/api/v1/auth" , authrouter)
 //prodcut route
 app.use("/api/v1/product" , productRouter)
 
-
+//cart route
+app.use("/api/v1/cart" , cartRouter)
 
 
 

@@ -1,7 +1,7 @@
 import { body, validationResult } from "express-validator";
 
 
-const validator = async (req,res,next)=>{
+const validateRequest = async (req,res,next)=>{
     
     const errors = validationResult(req)
     if(!errors.isEmpty()){
@@ -25,11 +25,12 @@ export const registerValidator = [
     .isLength({min:3 }).withMessage("fullname must be  min 6 charachter long"),
 
 
-    validator
+    validateRequest
 ];
 
 export const loginValidator = [
   body("email").isEmail().withMessage("Valid email is required"),
   body("password").notEmpty().withMessage("Password is required"),
-  validator
+  
+  validateRequest
 ];
