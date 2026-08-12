@@ -1,5 +1,5 @@
 import { addToCart, getCart } from "../service/cart.api";
-import { setCart, addCart } from "../state/cart.slice";
+import { setCart } from "../state/cart.slice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 
@@ -13,7 +13,7 @@ const useCart = () => {
     const handleAddToCart = async ({ productId, variantId }) => {
         try {
             const data = await addToCart({ productId, variantId })
-            dispatch(addCart(data.cart))
+            dispatch(setCart(data.cart?.items || []))
 
         } catch (error) {
             console.log(error)

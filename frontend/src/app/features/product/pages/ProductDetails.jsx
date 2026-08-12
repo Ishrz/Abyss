@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router"
 import useProduct from "../hook/useProduct.js"
-
+import useCart from "../../cart/hook/useCart.js"
 // ─── Constants ───────────────────────────────────────────────────────────────
 const currencySymbols = { INR: "₹", USD: "$", EUR: "€", GBP: "£" }
 
@@ -36,6 +36,8 @@ const DetailsSkeleton = () => (
 
 // ─── Product Details Page ────────────────────────────────────────────────────
 const ProductDetails = () => {
+
+    const { handleAddToCart } = useCart()
 
     const params = useParams()
     const { productId } = params
@@ -168,41 +170,41 @@ const ProductDetails = () => {
                                 const activeIdx = galleryImages.length > 0 ? Math.min(activeImage, galleryImages.length - 1) : 0
                                 return (
                                     <>
-                            <div className="relative overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white">
-                                {galleryImages.length > 0 && !imgError ? (
-                                    <img
-                                        key={activeIdx}
-                                        src={galleryImages[activeIdx]?.url}
-                                        alt={product.title}
-                                        onError={() => setImgError(true)}
-                                        className="w-full aspect-square object-cover"
-                                    />
-                                ) : (
-                                    <NoImagePlaceholder />
-                                )}
-                                {galleryImages.length > 1 && (
-                                    <span className="absolute bottom-4 right-4 bg-black/50 text-white text-[11px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm">
-                                        {activeIdx + 1} / {galleryImages.length}
-                                    </span>
-                                )}
-                            </div>
+                                        <div className="relative overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white">
+                                            {galleryImages.length > 0 && !imgError ? (
+                                                <img
+                                                    key={activeIdx}
+                                                    src={galleryImages[activeIdx]?.url}
+                                                    alt={product.title}
+                                                    onError={() => setImgError(true)}
+                                                    className="w-full aspect-square object-cover"
+                                                />
+                                            ) : (
+                                                <NoImagePlaceholder />
+                                            )}
+                                            {galleryImages.length > 1 && (
+                                                <span className="absolute bottom-4 right-4 bg-black/50 text-white text-[11px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm">
+                                                    {activeIdx + 1} / {galleryImages.length}
+                                                </span>
+                                            )}
+                                        </div>
 
-                            {galleryImages.length > 0 && (
-                                <div className="flex gap-3 overflow-x-auto py-1">
-                                    {galleryImages.map((img, i) => (
-                                        <button
-                                            key={img._id || i}
-                                            onClick={() => { setImgError(false); setActiveImage(i) }}
-                                            className={`w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeIdx === i
-                                                ? "border-indigo-600 ring-2 ring-indigo-600/20"
-                                                : "border-slate-200 hover:border-indigo-400"
-                                                }`}
-                                        >
-                                            <img src={img.url} alt={`${product.title} ${i + 1}`} className="w-full h-full object-cover" />
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                                        {galleryImages.length > 0 && (
+                                            <div className="flex gap-3 overflow-x-auto py-1">
+                                                {galleryImages.map((img, i) => (
+                                                    <button
+                                                        key={img._id || i}
+                                                        onClick={() => { setImgError(false); setActiveImage(i) }}
+                                                        className={`w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeIdx === i
+                                                            ? "border-indigo-600 ring-2 ring-indigo-600/20"
+                                                            : "border-slate-200 hover:border-indigo-400"
+                                                            }`}
+                                                    >
+                                                        <img src={img.url} alt={`${product.title} ${i + 1}`} className="w-full h-full object-cover" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </>
                                 )
                             })()}
@@ -316,7 +318,9 @@ const ProductDetails = () => {
 
                             {/* ── Actions ── */}
                             <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                                <button className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold rounded-xl text-sm transition-all active:scale-[0.98]">
+                                <button
+                                    onClick={() => handleAddToCart({ productId: product._id, variantId: selectedVariant?._id })}
+                                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold rounded-xl text-sm transition-all active:scale-[0.98]">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                                     </svg>
