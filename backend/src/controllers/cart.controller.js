@@ -1,9 +1,9 @@
-import { stockOfVariant } from "../dao/product.dao"
-import cartModel from "../models/cart.model"
-import productModel from "../models/product.model"
+import { stockOfVariant } from "../dao/product.dao.js"
+import cartModel from "../models/cart.model.js"
+import productModel from "../models/product.model.js"
 
 export const addToCart =async (req,res) =>{
-    const {productId, variantId} = req.param
+    const {productId,variantId} = req.params
     const {quantity=1}= req.body
 
     const product = await productModel.findOne({
@@ -22,7 +22,7 @@ export const addToCart =async (req,res) =>{
     const stock = await stockOfVariant(productId, variantId)
 
     //find already cart or create new one
-    const cart = (await cartModel.findOne({user:req.user._id})) || (await cartModel.create({user:req.user._id}))
+    let cart = (await cartModel.findOne({user:req.user._id})) || (await cartModel.create({user:req.user._id}))
 
 
     //check if product already in cart or not for increasing its quantity
@@ -41,7 +41,7 @@ export const addToCart =async (req,res) =>{
             })
         }
 
-          await cartModel.findOneAndUpdate(
+          cart = await cartModel.findOneAndUpdate(
             { user: req.user._id, "items.product": productId, "items.variant": variantId },
             { $inc: { "items.$.quantity": quantity } },
             { new: true }
@@ -49,7 +49,8 @@ export const addToCart =async (req,res) =>{
 
         return res.status(200).json({
             message:"Cart updated successfully",
-            success:true
+            success:true,
+            cart
         })
 
 
