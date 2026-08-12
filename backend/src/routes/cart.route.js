@@ -7,8 +7,10 @@ const cartRouter = Router()
 
 
 // add to cart route
-//POST /api/v1/cart/add/:productId/:variantId
-cartRouter.post("/add/:productId/:variantId" , authenticateUser , cartValidator , addToCart)
+//POST /api/v1/cart/add/:productId/:variantId?  (variantId optional)
+cartRouter.post("/add/:productId", authenticateUser, cartValidator, addToCart)
+
+cartRouter.post("/add/:productId/:variantId", authenticateUser, cartValidator, addToCart)
 
 //get cart and create new cart
 //GET /api/v1/cart/
