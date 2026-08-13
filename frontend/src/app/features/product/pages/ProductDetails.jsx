@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router"
 import useProduct from "../hook/useProduct.js"
-
+import Navbar from "../../common/components/Navbar.jsx"
+import useCart from "../../cart/hook/useCart.js"
 // ─── Constants ───────────────────────────────────────────────────────────────
 const currencySymbols = { INR: "₹", USD: "$", EUR: "€", GBP: "£" }
 
@@ -37,6 +38,8 @@ const DetailsSkeleton = () => (
 // ─── Product Details Page ────────────────────────────────────────────────────
 const ProductDetails = () => {
 
+    const { handleAddToCart } = useCart()
+
     const params = useParams()
     const { productId } = params
     const { handleProductDetails } = useProduct()
@@ -51,12 +54,17 @@ const ProductDetails = () => {
         const data = await handleProductDetails(productId)
         setProduct(data)
         setIsLoading(false)
+        const gallery = [
+            ...(data?.images || []),
+            ...(data?.variants?.flatMap(v => v?.images || []) || [])
+        ].filter((img, i, arr) => arr.findIndex(x => x.url === img.url) === i)
+        const idx = gallery.findIndex(g => g.url === data?.images?.[0]?.url)
+        setActiveImage(idx >= 0 ? idx : 0)
     }
 
     useEffect(() => {
         fetchProductDetails()
         setSelections({})
-        setActiveImage(0)
     }, [productId])
 
     // ── Variant logic ──
@@ -78,15 +86,17 @@ const ProductDetails = () => {
 
     // A variant matches when ALL its attributes are present in the current selections.
     // Among matches, the most specific variant (most attributes) wins.
-    let selectedVariant = null
-    if (variants.length > 0 && Object.keys(selections).length > 0) {
+    const findMatchingVariant = (selectionObj) => {
+        if (variants.length === 0 || Object.keys(selectionObj).length === 0) return null
         const matches = variants.filter(v => {
             const attrs = v?.attributes || {}
-            return Object.entries(attrs).every(([key, value]) => selections[key] === value)
+            return Object.entries(attrs).every(([key, value]) => selectionObj[key] === value)
         })
         matches.sort((a, b) => Object.keys(b?.attributes || {}).length - Object.keys(a?.attributes || {}).length)
-        selectedVariant = matches[0] || null
+        return matches[0] || null
     }
+
+    const selectedVariant = findMatchingVariant(selections)
 
     const activePrice = selectedVariant?.price || product?.price
     const activeStock = selectedVariant != null ? selectedVariant.stock : null
@@ -99,45 +109,32 @@ const ProductDetails = () => {
         ...(variants.flatMap(v => v?.images || []))
     ].filter((img, i, arr) => arr.findIndex(x => x.url === img.url) === i)
 
+    const setImageToFirstOf = (variantOrProductImages) => {
+        const firstUrl = variantOrProductImages?.[0]?.url
+        const idx = galleryImages.findIndex(g => g.url === firstUrl)
+        setActiveImage(idx >= 0 ? idx : 0)
+    }
+
     function handleSelect(type, value) {
-        setSelections(prev => {
-            const next = { ...prev }
-            if (next[type] === value) delete next[type]
-            else next[type] = value
-            return next
-        })
+        let next = { ...selections }
+        if (next[type] === value) delete next[type]
+        else next[type] = value
+        setSelections(next)
         setImgError(false)
+        const variant = findMatchingVariant(next)
+        setImageToFirstOf(variant?.images || product?.images)
     }
 
     function handleReset() {
         setSelections({})
         setImgError(false)
+        setImageToFirstOf(product?.images)
     }
-
-    useEffect(() => {
-        if (!product) return
-        const firstUrl = (selectedVariant?.images?.[0] || product?.images?.[0])?.url
-        const idx = galleryImages.findIndex(g => g.url === firstUrl)
-        setActiveImage(idx >= 0 ? idx : 0)
-    }, [selectedVariant, product])
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             {/* ── Navbar ── */}
-            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-14 flex items-center justify-between">
-                    <Link to="/" className="text-xl font-extrabold text-indigo-600 tracking-tight">ABYSS</Link>
-                    <Link
-                        to="/"
-                        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                        </svg>
-                        Back to Shop
-                    </Link>
-                </div>
-            </nav>
+            <Navbar />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 md:py-14">
 
@@ -168,41 +165,41 @@ const ProductDetails = () => {
                                 const activeIdx = galleryImages.length > 0 ? Math.min(activeImage, galleryImages.length - 1) : 0
                                 return (
                                     <>
-                            <div className="relative overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white">
-                                {galleryImages.length > 0 && !imgError ? (
-                                    <img
-                                        key={activeIdx}
-                                        src={galleryImages[activeIdx]?.url}
-                                        alt={product.title}
-                                        onError={() => setImgError(true)}
-                                        className="w-full aspect-square object-cover"
-                                    />
-                                ) : (
-                                    <NoImagePlaceholder />
-                                )}
-                                {galleryImages.length > 1 && (
-                                    <span className="absolute bottom-4 right-4 bg-black/50 text-white text-[11px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm">
-                                        {activeIdx + 1} / {galleryImages.length}
-                                    </span>
-                                )}
-                            </div>
+                                        <div className="relative overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white">
+                                            {galleryImages.length > 0 && !imgError ? (
+                                                <img
+                                                    key={activeIdx}
+                                                    src={galleryImages[activeIdx]?.url}
+                                                    alt={product.title}
+                                                    onError={() => setImgError(true)}
+                                                    className="w-full aspect-square object-cover"
+                                                />
+                                            ) : (
+                                                <NoImagePlaceholder />
+                                            )}
+                                            {galleryImages.length > 1 && (
+                                                <span className="absolute bottom-4 right-4 bg-black/50 text-white text-[11px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm">
+                                                    {activeIdx + 1} / {galleryImages.length}
+                                                </span>
+                                            )}
+                                        </div>
 
-                            {galleryImages.length > 0 && (
-                                <div className="flex gap-3 overflow-x-auto py-1">
-                                    {galleryImages.map((img, i) => (
-                                        <button
-                                            key={img._id || i}
-                                            onClick={() => { setImgError(false); setActiveImage(i) }}
-                                            className={`w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeIdx === i
-                                                ? "border-indigo-600 ring-2 ring-indigo-600/20"
-                                                : "border-slate-200 hover:border-indigo-400"
-                                                }`}
-                                        >
-                                            <img src={img.url} alt={`${product.title} ${i + 1}`} className="w-full h-full object-cover" />
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                                        {galleryImages.length > 0 && (
+                                            <div className="flex gap-3 overflow-x-auto py-1">
+                                                {galleryImages.map((img, i) => (
+                                                    <button
+                                                        key={img._id || i}
+                                                        onClick={() => { setImgError(false); setActiveImage(i) }}
+                                                        className={`w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeIdx === i
+                                                            ? "border-indigo-600 ring-2 ring-indigo-600/20"
+                                                            : "border-slate-200 hover:border-indigo-400"
+                                                            }`}
+                                                    >
+                                                        <img src={img.url} alt={`${product.title} ${i + 1}`} className="w-full h-full object-cover" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </>
                                 )
                             })()}
@@ -228,8 +225,8 @@ const ProductDetails = () => {
                                     {activePrice?.currency}
                                 </span>
                                 {selectedVariant != null && (
-                                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${selectedVariant.stock > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
-                                        {selectedVariant.stock > 0 ? `${selectedVariant.stock} in stock` : "Out of stock"}
+                                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${activeStock > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                                        {activeStock > 0 ? `${activeStock} in stock` : "Out of stock"}
                                     </span>
                                 )}
                             </div>
@@ -316,7 +313,9 @@ const ProductDetails = () => {
 
                             {/* ── Actions ── */}
                             <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                                <button className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold rounded-xl text-sm transition-all active:scale-[0.98]">
+                                <button
+                                    onClick={() => handleAddToCart({ productId: product._id, variantId: selectedVariant?._id })}
+                                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold rounded-xl text-sm transition-all active:scale-[0.98]">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                                     </svg>

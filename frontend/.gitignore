@@ -12,6 +12,7 @@ node_modules
 dist
 dist-ssr
 *.local
+docs
 
 # Editor directories and files
 .vscode/*
@@ -24,3 +25,6 @@ dist-ssr
 *.sln
 *.sw?
 src/app/features/product/implemented.md
+.md
+!README.md
+

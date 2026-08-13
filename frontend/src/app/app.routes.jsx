@@ -7,10 +7,15 @@ import Protected from "./features/auth/pages/components/Protected.jsx"
 import Home from "./features/product/pages/Home.jsx"
 import ProductDetails from "./features/product/pages/ProductDetails.jsx"
 import SellerProdcutDetails from "./features/product/pages/SellerProductDetails.jsx"
+import CartPage from "./features/cart/pages/CartPage.jsx"
 export const routes = createBrowserRouter([
     {
         path:"/",
         element:<Home/>
+    },
+    {
+        path:"/cart",
+        element:<Protected><CartPage/></Protected>
     },
     {
         path:"/register",

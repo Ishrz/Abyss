@@ -3,6 +3,7 @@ import useProduct from "../hook/useProduct"
 import { useEffect, useState } from "react"
 import { Link } from "react-router"
 import { useNavigate } from "react-router"
+import Navbar from "../../common/components/Navbar.jsx"
 // ─── Constants ───────────────────────────────────────────────────────────────
 const currencySymbols = { INR: "₹", USD: "$", EUR: "€", GBP: "£" }
 
@@ -179,33 +180,7 @@ const Home = () => {
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             {/* ── Navbar ── */}
-            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-14 flex items-center justify-between">
-                    <Link to="/" className="text-xl font-extrabold text-indigo-600 tracking-tight">ABYSS</Link>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        {user ? 
-                        <span 
-                            className="text-lg font-semibold text-slate-600 hover:text-indigo-600 transition-colors px-3 py-1.5 border-2 rounded-full hover:bg-slate-50">
-                                {user.fullname}
-                        </span>: 
-                        <span>
-                            <Link
-                            to="/login"
-                            className="text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50"
-                            >
-                                Sign In
-                            </Link>
-                            <Link
-                            to="/register"
-                            className="text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded-xl transition-colors shadow-sm shadow-indigo-600/20"
-                            >
-                                Join Now
-                            </Link>
-                        </span>
-                        }
-                    </div>
-                </div>
-            </nav>
+            <Navbar />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 md:py-10">
 
