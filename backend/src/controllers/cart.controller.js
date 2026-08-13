@@ -104,6 +104,103 @@ export const addToCart = async (req, res) => {
     })
 }
 
+export const updateCartItem = async (req, res) => {
+    const { productId, variantId } = req.params
+    const { quantity } = req.body
+
+    const cart = await cartModel.findOne({ user: req.user._id })
+    if (!cart) {
+        return res.status(404).json({
+            message: "Cart not found",
+            success: false
+        })
+    }
+
+    const item = cart.items.find(i =>
+        i.product.toString() === productId &&
+        (variantId ? i.variant?.toString() === variantId : !i.variant)
+    )
+    if (!item) {
+        return res.status(404).json({
+            message: "Item not found in cart",
+            success: false
+        })
+    }
+
+    // validate against stock (variant stock; main product has no stock so unlimited)
+    let stock = Number.MAX_SAFE_INTEGER
+    if (variantId) {
+        const product = await productModel.findOne({
+            _id: productId,
+            "variants._id": variantId
+        })
+        if (!product) {
+            return res.status(404).json({
+                message: "product or variant not found",
+                success: false
+            })
+        }
+        stock = product.variants.id(variantId).stock
+    }
+
+    if (quantity > stock) {
+        return res.status(400).json({
+            message: `Only ${stock} items left in stock`,
+            success: false
+        })
+    }
+
+    await cartModel.findOneAndUpdate(
+        {
+            user: req.user._id,
+            "items.product": productId,
+            ...(variantId ? { "items.variant": variantId } : { "items.variant": null })
+        },
+        { $set: { "items.$.quantity": quantity } },
+        { new: true }
+    )
+
+    const updatedCart = await cartModel.findOne({ user: req.user._id }).populate("items.product")
+
+    return res.status(200).json({
+        message: "Cart item quantity updated successfully",
+        success: true,
+        cart: updatedCart
+    })
+}
+
+export const removeCartItem = async (req, res) => {
+    const { productId, variantId } = req.params
+
+    const cart = await cartModel.findOne({ user: req.user._id })
+    if (!cart) {
+        return res.status(404).json({
+            message: "Cart not found",
+            success: false
+        })
+    }
+
+    await cartModel.updateOne(
+        { user: req.user._id },
+        {
+            $pull: {
+                items: {
+                    product: productId,
+                    ...(variantId ? { variant: variantId } : { variant: null })
+                }
+            }
+        }
+    )
+
+    const updatedCart = await cartModel.findOne({ user: req.user._id }).populate("items.product")
+
+    return res.status(200).json({
+        message: "Cart item removed successfully",
+        success: true,
+        cart: updatedCart
+    })
+}
+
 export const getCart =async (req,res) => {
 
     const user = req.user
