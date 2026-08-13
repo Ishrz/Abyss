@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router"
 import useProduct from "../hook/useProduct.js"
+import Navbar from "../../common/components/Navbar.jsx"
 import useCart from "../../cart/hook/useCart.js"
 // ─── Constants ───────────────────────────────────────────────────────────────
 const currencySymbols = { INR: "₹", USD: "$", EUR: "€", GBP: "£" }
@@ -53,12 +54,17 @@ const ProductDetails = () => {
         const data = await handleProductDetails(productId)
         setProduct(data)
         setIsLoading(false)
+        const gallery = [
+            ...(data?.images || []),
+            ...(data?.variants?.flatMap(v => v?.images || []) || [])
+        ].filter((img, i, arr) => arr.findIndex(x => x.url === img.url) === i)
+        const idx = gallery.findIndex(g => g.url === data?.images?.[0]?.url)
+        setActiveImage(idx >= 0 ? idx : 0)
     }
 
     useEffect(() => {
         fetchProductDetails()
         setSelections({})
-        setActiveImage(0)
     }, [productId])
 
     // ── Variant logic ──
@@ -80,15 +86,17 @@ const ProductDetails = () => {
 
     // A variant matches when ALL its attributes are present in the current selections.
     // Among matches, the most specific variant (most attributes) wins.
-    let selectedVariant = null
-    if (variants.length > 0 && Object.keys(selections).length > 0) {
+    const findMatchingVariant = (selectionObj) => {
+        if (variants.length === 0 || Object.keys(selectionObj).length === 0) return null
         const matches = variants.filter(v => {
             const attrs = v?.attributes || {}
-            return Object.entries(attrs).every(([key, value]) => selections[key] === value)
+            return Object.entries(attrs).every(([key, value]) => selectionObj[key] === value)
         })
         matches.sort((a, b) => Object.keys(b?.attributes || {}).length - Object.keys(a?.attributes || {}).length)
-        selectedVariant = matches[0] || null
+        return matches[0] || null
     }
+
+    const selectedVariant = findMatchingVariant(selections)
 
     const activePrice = selectedVariant?.price || product?.price
     const activeStock = selectedVariant != null ? selectedVariant.stock : null
@@ -101,45 +109,32 @@ const ProductDetails = () => {
         ...(variants.flatMap(v => v?.images || []))
     ].filter((img, i, arr) => arr.findIndex(x => x.url === img.url) === i)
 
+    const setImageToFirstOf = (variantOrProductImages) => {
+        const firstUrl = variantOrProductImages?.[0]?.url
+        const idx = galleryImages.findIndex(g => g.url === firstUrl)
+        setActiveImage(idx >= 0 ? idx : 0)
+    }
+
     function handleSelect(type, value) {
-        setSelections(prev => {
-            const next = { ...prev }
-            if (next[type] === value) delete next[type]
-            else next[type] = value
-            return next
-        })
+        let next = { ...selections }
+        if (next[type] === value) delete next[type]
+        else next[type] = value
+        setSelections(next)
         setImgError(false)
+        const variant = findMatchingVariant(next)
+        setImageToFirstOf(variant?.images || product?.images)
     }
 
     function handleReset() {
         setSelections({})
         setImgError(false)
+        setImageToFirstOf(product?.images)
     }
-
-    useEffect(() => {
-        if (!product) return
-        const firstUrl = (selectedVariant?.images?.[0] || product?.images?.[0])?.url
-        const idx = galleryImages.findIndex(g => g.url === firstUrl)
-        setActiveImage(idx >= 0 ? idx : 0)
-    }, [selectedVariant, product])
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             {/* ── Navbar ── */}
-            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-14 flex items-center justify-between">
-                    <Link to="/" className="text-xl font-extrabold text-indigo-600 tracking-tight">ABYSS</Link>
-                    <Link
-                        to="/"
-                        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                        </svg>
-                        Back to Shop
-                    </Link>
-                </div>
-            </nav>
+            <Navbar />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 md:py-14">
 
@@ -230,8 +225,8 @@ const ProductDetails = () => {
                                     {activePrice?.currency}
                                 </span>
                                 {selectedVariant != null && (
-                                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${selectedVariant.stock > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
-                                        {selectedVariant.stock > 0 ? `${selectedVariant.stock} in stock` : "Out of stock"}
+                                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${activeStock > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                                        {activeStock > 0 ? `${activeStock} in stock` : "Out of stock"}
                                     </span>
                                 )}
                             </div>

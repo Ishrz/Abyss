@@ -14,6 +14,20 @@ export const addToCart = async ({ productId, variantId, quantity = 1 }) => {
     return response.data
 }
 
+export const updateCartItem = async ({ productId, variantId, quantity }) => {
+    const url = variantId ? `/update/${productId}/${variantId}` : `/update/${productId}`
+    const response = await cartApiInstance.patch(url, {
+        quantity
+    })
+    return response.data
+}
+
+export const removeFromCart = async ({ productId, variantId }) => {
+    const url = variantId ? `/remove/${productId}/${variantId}` : `/remove/${productId}`
+    const response = await cartApiInstance.delete(url)
+    return response.data
+}
+
 export const getCart = async ()=>{
     const response = await cartApiInstance.get("/")
     return response.data

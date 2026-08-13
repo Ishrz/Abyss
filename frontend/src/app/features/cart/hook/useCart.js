@@ -1,39 +1,41 @@
-import { addToCart, getCart } from "../service/cart.api";
+import { addToCart, getCart, updateCartItem, removeFromCart } from "../service/cart.api";
 import { setCart } from "../state/cart.slice";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
 
 
 const useCart = () => {
     const dispatch = useDispatch()
-    const navigate = useNavigate()
-    // const { cartItems } = useSelector((state) => state.cart)
 
 
     const handleAddToCart = async ({ productId, variantId }) => {
-        try {
-            const data = await addToCart({ productId, variantId })
-            dispatch(setCart(data.cart?.items || []))
-
-        } catch (error) {
-            console.log(error)
-
-        }
+        const data = await addToCart({ productId, variantId })
+        dispatch(setCart(data.cart?.items || []))
+        return data.cart
     }
 
     const handleGetCart = async () => {
-        try {
-            const data = await getCart()
-            dispatch(setCart(data.cart))
-        } catch (error) {
-            console.log(error)
+        const data = await getCart()
+        dispatch(setCart(data.cart?.items || []))
+        return data.cart
+    }
 
-        }
+    const handleUpdateQuantity = async ({ productId, variantId, quantity }) => {
+        const data = await updateCartItem({ productId, variantId, quantity })
+        dispatch(setCart(data.cart?.items || []))
+        return data.cart
+    }
+
+    const handleRemoveItem = async ({ productId, variantId }) => {
+        const data = await removeFromCart({ productId, variantId })
+        dispatch(setCart(data.cart?.items || []))
+        return data.cart
     }
 
     return {
         handleAddToCart,
-        handleGetCart
+        handleGetCart,
+        handleUpdateQuantity,
+        handleRemoveItem
     }
 }
 
