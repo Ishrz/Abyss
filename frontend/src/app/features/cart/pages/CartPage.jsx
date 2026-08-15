@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router"
 import useCart from "../hook/useCart.js"
+import { useRazorpay } from "react-razorpay";
 import Navbar from "../../common/components/Navbar.jsx"
 
 const currencySymbols = { INR: "₹", USD: "$", EUR: "€", GBP: "£" }
@@ -45,7 +46,9 @@ const CartSkeleton = () => (
 )
 
 const CartPage = () => {
-    const { handleGetCart, handleUpdateQuantity, handleRemoveItem } = useCart()
+
+    const { error: razError, isLoading: razIsLoading, Razorpay } = useRazorpay();
+    const { handleGetCart, handleUpdateQuantity, handleRemoveItem , handleCreatePaymentOrder } = useCart()
     const [items, setItems] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [isUpdating, setIsUpdating] = useState(null)
@@ -96,6 +99,35 @@ const CartPage = () => {
         } finally {
             setIsUpdating(null)
         }
+    }
+
+    async function handlePayment(){
+
+        const orderData =  await handleCreatePaymentOrder()
+
+        const options= {
+            key: "rzp_test_ShNSkpxt3emQVJ",
+            amount: 1000, // Amount in paise
+            currency:"INR",
+            name: "Test Company",
+            description: "Test Transaction",
+            order_id: "order_9A33XWu170gUtm", // Generate order_id on server
+            handler: (response) => {
+                console.log(response);
+                alert("Payment Successful!");
+            },
+            prefill: {
+                name: "John Doe",
+                email: "john.doe@example.com",
+                contact: "9999999999",
+            },
+            theme: {
+                color: "#F37254",
+            },
+        };
+
+        const razorpayInstance = new Razorpay(options);
+        razorpayInstance.open();
     }
 
     return (
@@ -242,6 +274,7 @@ const CartPage = () => {
 
                                 <button
                                     className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.98]"
+                                    onClick={handlePayment}
                                 >
                                     Proceed to Checkout
                                 </button>

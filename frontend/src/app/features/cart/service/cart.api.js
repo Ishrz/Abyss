@@ -32,3 +32,8 @@ export const getCart = async ()=>{
     const response = await cartApiInstance.get("/")
     return response.data
 }
+
+export const createPaymentOrder = async()=>{
+    const response = await cartApiInstance.post("/payment/create/order")
+    return response.data
+}

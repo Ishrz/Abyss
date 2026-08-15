@@ -1,4 +1,4 @@
-import { addToCart, getCart, updateCartItem, removeFromCart } from "../service/cart.api";
+import { addToCart, getCart, updateCartItem, removeFromCart , createPaymentOrder } from "../service/cart.api";
 import { setCart } from "../state/cart.slice";
 import { useDispatch } from "react-redux";
 
@@ -31,11 +31,17 @@ const useCart = () => {
         return data.cart
     }
 
+    const handleCreatePaymentOrder = async () =>{
+        const data = await createPaymentOrder()
+        return data
+    }
+
     return {
         handleAddToCart,
         handleGetCart,
         handleUpdateQuantity,
-        handleRemoveItem
+        handleRemoveItem,
+        handleCreatePaymentOrder
     }
 }
 
