@@ -9,25 +9,25 @@ const useCart = () => {
 
     const handleAddToCart = async ({ productId, variantId }) => {
         const data = await addToCart({ productId, variantId })
-        dispatch(setCart(data.cart?.items || []))
+        dispatch(setCart(data.cart))
         return data.cart
     }
 
     const handleGetCart = async () => {
         const data = await getCart()
-        dispatch(setCart(data.cart?.items || []))
+        dispatch(setCart(data.cart))
         return data.cart
     }
 
     const handleUpdateQuantity = async ({ productId, variantId, quantity }) => {
         const data = await updateCartItem({ productId, variantId, quantity })
-        dispatch(setCart(data.cart?.items || []))
+        dispatch(setCart(data.cart))
         return data.cart
     }
 
     const handleRemoveItem = async ({ productId, variantId }) => {
         const data = await removeFromCart({ productId, variantId })
-        dispatch(setCart(data.cart?.items || []))
+        dispatch(setCart(data.cart))
         return data.cart
     }
 
