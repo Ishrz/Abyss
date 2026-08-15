@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { Link } from "react-router"
 import useCart from "../hook/useCart.js"
@@ -10,14 +11,18 @@ const formatPrice = (amount, currency) =>
 
 const resolveItem = (item) => {
     const product = item?.product || {}
+    const variants = Array.isArray(product.variants)
+        ? product.variants
+        : (product.variants ? [product.variants] : [])
+
     const variant = item?.variant
-        ? (product.variants || []).find(v => String(v._id) === String(item.variant))
+        ? variants.find(v => String(v?._id) === String(item.variant)) || null
         : null
 
     const image = variant?.images?.[0]?.url || product.images?.[0]?.url || null
     const attributes = variant && Object.keys(variant.attributes || {}).length > 0
         ? Object.entries(variant.attributes).map(([key, value]) => `${key}: ${value}`).join(" · ")
-        : (variant ? "Default" : "Default")
+        : "Default"
 
     return { product, variant, image, attributes }
 }
