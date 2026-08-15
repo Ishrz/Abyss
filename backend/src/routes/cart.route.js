@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticateUser } from "../middlewares/auth.middleware.js";
-import { addToCart, getCart, updateCartItem, removeCartItem } from "../controllers/cart.controller.js";
+import { addToCart, getCart, updateCartItem, removeCartItem, createOrderHandler } from "../controllers/cart.controller.js";
 import { cartValidator, cartUpdateValidator } from "../validators/cart.validator.js";
 
 const cartRouter = Router()
@@ -27,6 +27,11 @@ cartRouter.delete("/remove/:productId/:variantId", authenticateUser, cartValidat
 //get cart and create new cart
 //GET /api/v1/cart/
 cartRouter.get("/", authenticateUser, getCart)
+
+
+//payment route
+// POST /api/v1/cart/create/order
+cartRouter.post("/payment/create/order" , authenticateUser, createOrderHandler)
 
 
 export default cartRouter
