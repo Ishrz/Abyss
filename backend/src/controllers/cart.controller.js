@@ -1,6 +1,9 @@
 import mongoose from "mongoose"
 import cartModel from "../models/cart.model.js"
 import productModel from "../models/product.model.js"
+import { createOrder } from "../services/payment.service.js"
+import { getFinalCart } from "../dao/cart.dao.js"
+
 
 export const addToCart = async (req, res) => {
     const { productId, variantId } = req.params
@@ -208,96 +211,7 @@ export const getCart =async (req,res) => {
 
     // let cart = await cartModel.findOne({user:user._id}).populate("items.product")
 
-    let cart = (await cartModel.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(user._id)
-        }
-      },
-      { $unwind: { path: '$items' } },
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'items.product',
-          foreignField: '_id',
-          as: 'items.product'
-        }
-      },
-      { $unwind: { path: '$items.product', preserveNullAndEmptyArrays: true } },
-      {
-        $addFields: {
-          matchedVariant: {
-            $ifNull: [
-              {
-                $arrayElemAt: [
-                  {
-                    $filter: {
-                      input: { $ifNull: ['$items.product.variants', []] },
-                      as: 'v',
-                      cond: { $eq: ['$$v._id', '$items.variant'] }
-                    }
-                  },
-                  0
-                ]
-              },
-              null
-            ]
-          }
-        }
-      },
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $ne: ['$items.product', null] },
-              {
-                $or: [
-                  { $eq: ['$items.variant', null] },
-                  { $ne: ['$matchedVariant', null] }
-                ]
-              }
-            ]
-          }
-        }
-      },
-      {
-        $addFields: {
-          'items.product.variants': '$matchedVariant',
-          itemPrice: {
-            price: {
-              $multiply: [
-                {
-                  $ifNull: [
-                    '$matchedVariant.price.amount',
-                    '$items.product.price.amount',
-                    '$items.price.amount',
-                    0
-                  ]
-                },
-                '$items.quantity'
-              ]
-            },
-            currency: {
-              $ifNull: [
-                '$matchedVariant.price.currency',
-                '$items.product.price.currency',
-                '$items.price.currency'
-              ]
-            }
-          }
-        }
-      },
-      {
-        $group: {
-          _id: '$_id',
-          items: { $push: '$items' },
-          totalPrice: { $sum: '$itemPrice.price' },
-          currency: {
-            $first: '$itemPrice.currency'
-          }
-        }
-      }
-    ]))[0]
+    let cart = await getFinalCart()
 
 
     if(!cart){
@@ -310,4 +224,40 @@ export const getCart =async (req,res) => {
         cart
     })
 
+}
+
+
+export const createOrderHandler = async (req,res) =>{
+
+
+    try{
+
+        const cart = await getFinalCart()
+
+        if(!cart){
+            return res.status(404).json({
+                message:"Cart is empty",
+                success:false
+            })
+        }
+
+        const order= await createOrder({amount:cart.totalPrice , currency: cart.currency})
+
+        // console.log(order)
+
+        res.status(201).json({
+            message:"Payment order recieved",
+            success:true,
+            order
+        })
+
+    }catch(err){
+        // console.log(err)
+        res.status(400).json({
+            message:"creating order faild",
+            success:false,
+            error:err
+        })
+    }
+    
 }
