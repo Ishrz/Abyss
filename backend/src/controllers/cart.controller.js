@@ -236,12 +236,12 @@ export const createOrderHandler = async (req,res) =>{
 
         if(!cart){
             return res.status(404).json({
-                message:"Cart not found",
+                message:"Cart is empty",
                 success:false
             })
         }
 
-        const order= await createOrder({amount:cart.priceAmount , currency: cart.currency})
+        const order= await createOrder({amount:cart.totalPrice , currency: cart.currency})
 
         // console.log(order)
 
