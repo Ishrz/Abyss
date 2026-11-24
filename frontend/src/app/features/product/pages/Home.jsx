@@ -1,5 +1,6 @@
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import useProduct from "../hook/useProduct"
+import { setProducts, appendProducts } from "../state/product.slice"
 import { useEffect, useState } from "react"
 import { Link } from "react-router"
 import { useNavigate } from "react-router"
@@ -94,6 +95,11 @@ const ProductCard = ({ product }) => {
                 <p className="text-xs text-slate-400 font-medium leading-relaxed line-clamp-2 flex-1">
                     {product.description}
                 </p>
+                {product.category && (
+                    <span className="inline-block mt-2 text-[10px] font-bold text-indigo-600 uppercase tracking-wider border border-indigo-100 rounded-full px-2.5 py-0.5 self-start">
+                        {product.category}
+                    </span>
+                )}
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
                     <div>
                         <span className="text-lg font-extrabold text-slate-900 tracking-tight">
@@ -145,6 +151,11 @@ const Hero = ({ productCount }) => (
                         {productCount} products available
                     </span>
                 )}
+                {productCount === 0 && (
+                    <span className="text-indigo-300 text-sm font-semibold">
+                        Discover more products
+                    </span>
+                )}
             </div>
         </div>
     </div>
@@ -154,16 +165,46 @@ const Hero = ({ productCount }) => (
 const Home = () => {
 
     const navigate = useNavigate()
+    const dispatch = useDispatch()
     const { handleGetAllProducts } = useProduct()
     const products = useSelector(state => state.product.products)
     const user = useSelector( state => state.auth.user)
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [sortBy, setSortBy] = useState("newest")
+    // Clothing is the default focus for visitors.
+    const [category, setCategory] = useState("clothing")
+    const [page, setPage] = useState(1)
+    const [hasMore, setHasMore] = useState(true)
+    const [totalProducts, setTotalProducts] = useState(0)
+
+    const loadProducts = async (currentPage) => {
+        const data = await handleGetAllProducts(
+            { category, search: searchQuery, limit: 24, page: currentPage },
+            { append: currentPage > 1 }
+        )
+        if (currentPage === 1) dispatch(setProducts(data.products))
+        else dispatch(appendProducts(data.products))
+        setPage(currentPage)
+        setHasMore(Boolean(data.hasMore))
+        setTotalProducts(data.total || 0)
+        return data
+    }
 
     useEffect(() => {
-        handleGetAllProducts().finally(() => setIsLoading(false))
-    }, [])
+        let cancelled = false
+        const loadFirst = async () => {
+            await loadProducts(1)
+            if (!cancelled) setIsLoading(false)
+        }
+        loadFirst()
+        return () => { cancelled = true }
+    }, [category, searchQuery])
+
+    const loadMore = async () => {
+        if (!hasMore) return
+        await loadProducts(page + 1)
+    }
 
     // Filter + Sort
     const filtered = products
@@ -185,7 +226,7 @@ const Home = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 md:py-10">
 
                 {/* ── Hero ── */}
-                <Hero productCount={products.length} />
+                <Hero productCount={totalProducts || products.length} />
 
                 {/* ── Controls ── */}
                 <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between mb-6">
@@ -225,6 +266,22 @@ const Home = () => {
                         <option value="price-asc">Price: Low to High</option>
                         <option value="price-desc">Price: High to Low</option>
                     </select>
+                </div>
+
+                {/* Category filter — default focus on Clothing */}
+                <div className="flex flex-wrap gap-2 mt-3">
+                    {["clothing", "beauty", "electronics", "home", "sports", "books", "other"].map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => setCategory(cat)}
+                            className={`text-xs font-semibold capitalize px-3.5 py-1.5 rounded-full border transition-all ${category === cat
+                                ? "bg-indigo-600 text-white border-indigo-600"
+                                : "bg-white text-slate-600 border-slate-200 hover:border-indigo-400"
+                            }`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
                 </div>
 
                 {/* ── Product Grid / States ── */}
@@ -267,6 +324,19 @@ const Home = () => {
                                 <ProductCard key={product._id} product={product} />
                             ))}
                         </div>
+
+                        {/* Load more — show more products for visitors */}
+                        {hasMore && (
+                            <div className="flex justify-center mt-8">
+                                <button
+                                    onClick={loadMore}
+                                    disabled={isLoading}
+                                    className="px-6 py-2.5 text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isLoading ? "Loading…" : "Load more products"}
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
 

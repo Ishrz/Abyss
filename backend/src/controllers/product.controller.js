@@ -3,7 +3,7 @@ import { imageKitUpload } from "../services/storage.service.js"
 
 export const createProduct = async (req,res) =>{
 
-    const {title, description , priceAmount,priceCurrency} = req.body
+    const {title, description, category, priceAmount,priceCurrency} = req.body
     const {role} = req.user
 
     // console.log("body")
@@ -22,6 +22,7 @@ export const createProduct = async (req,res) =>{
     const product = await productModel.create({
         title,
         description,
+        category: category || "clothing",
         price:{
             amount:priceAmount,
             currency: priceCurrency || "INR"
@@ -62,12 +63,51 @@ const products = await productModel.find({seller: seller._id})
 
 export const getAllProduts = async (req,res) => {
 
-    const products = await productModel.find()
+    const { category, search, priceMin, priceMax, sort } = req.query
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 24))
+
+    // Public listing: open to all users, including non-registered visitors.
+    const query = {}
+
+    if (category && category !== "all"){
+        query.category = category
+    }
+    if (search){
+        const term = new RegExp(String(search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")
+        query.$or = [
+            { title: term },
+            { description: term },
+        ]
+    }
+    const priceQuery = {}
+    if (priceMin){ priceQuery.$gte = Number(priceMin) }
+    if (priceMax){ priceQuery.$lte = Number(priceMax) }
+    if (Object.keys(priceQuery).length){
+        query.price = query.price || {}
+        query.price.amount = priceQuery
+    }
+
+    const sortOrder = sort === "priceAsc" ? { "price.amount": 1 }
+                   : sort === "priceDesc" ? { "price.amount": -1 }
+                   : { createdAt: -1, _id: -1 }
+
+    const [products, total] = await Promise.all([
+        productModel.find(query).sort(sortOrder).limit(limit).skip((page - 1) * limit),
+        productModel.countDocuments(query),
+    ])
+
+    const totalPages = Math.ceil(total / limit)
 
     return res.status(200).json({
         message:"All products fetched successfully",
         sucess:true,
-        products
+        products,
+        total,
+        page,
+        limit,
+        totalPages,
+        hasMore: page < totalPages
     })
 
 }

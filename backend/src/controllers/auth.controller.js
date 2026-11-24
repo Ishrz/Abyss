@@ -34,7 +34,7 @@ const genrateToken = async (user,res,message) => {
 export const register = async (req,res) =>{
     const {email , contact , fullname , password, isSeller} = req.body
 
-    console.log(email , contact , fullname , password, isSeller)
+    // console.log(email , contact , fullname , password, isSeller)
 
     try {
         const existingUser = await userModel.findOne({
@@ -93,6 +93,7 @@ export const googleCallback = async (req,res) =>{
         let user =await userModel.findOne({
             email
         })
+        console.log(user)
         
         if(!user){
             user = userModel.create({

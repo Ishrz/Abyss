@@ -211,7 +211,7 @@ export const getCart =async (req,res) => {
 
     // let cart = await cartModel.findOne({user:user._id}).populate("items.product")
 
-    let cart = await getFinalCart()
+    let cart = await getFinalCart(user)
 
 
     if(!cart){
