@@ -2,7 +2,7 @@ import cartModel from "../models/cart.model.js";
 import mongoose from "mongoose";
 
 
-export const getFinalCart = async() =>{
+export const getFinalCart = async(user) =>{
     const cart = (await cartModel.aggregate([
       {
         $match: {

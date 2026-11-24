@@ -24,6 +24,7 @@ export const authenticateUser = async (req,res,next) =>{
             })
         }
 
+      
         req.user= user
         next()
 
