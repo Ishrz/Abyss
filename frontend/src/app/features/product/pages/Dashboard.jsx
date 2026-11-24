@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import useProduct from "../hook/useProduct"
 import { useSelector } from "react-redux"
 import { Link, useNavigate } from "react-router"
+import Navbar from "../../common/components/Navbar.jsx"
 
 const currencySymbols = {
   INR: "₹",
@@ -12,7 +13,7 @@ const currencySymbols = {
 
 // ─── Skeleton Card ───────────────────────────────────────────────────────────
 const SkeletonCard = () => (
-  <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm animate-pulse">
+  <div className="bg-white border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm animate-pulse">
     <div className="bg-slate-100 aspect-[4/3]" />
     <div className="p-4 space-y-2.5">
       <div className="h-4 bg-slate-100 rounded-lg w-3/4" />
@@ -38,12 +39,12 @@ const NoImagePlaceholder = () => (
 
 // ─── Stats Card ──────────────────────────────────────────────────────────────
 const StatCard = ({ icon, label, value, sub }) => (
-  <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-start gap-4">
-    <span className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl flex-shrink-0">{icon}</span>
+  <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm flex items-start gap-4">
+    <span className="p-3 bg-indigo-50 text-indigo-600 rounded-xl flex-shrink-0">{icon}</span>
     <div className="min-w-0">
-      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{label}</p>
+      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</p>
       <p className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">{value}</p>
-      {sub && <p className="text-xs text-slate-400 font-medium mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-slate-400 font-medium mt-1">{sub}</p>}
     </div>
   </div>
 )
@@ -58,9 +59,9 @@ const ProductCard = ({ product }) => {
 
   return (
     <div
-    onClick={()=> navigate(`/seller/product/${product._id}`)} 
-    className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.015] hover:-translate-y-0.5 transition-all duration-200 group flex flex-col">
-      {/* Image */}
+      onClick={() => navigate(`/seller/product/${product._id}`)}
+      className="bg-white border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group cursor-pointer flex flex-col"
+    >
       <div className="relative overflow-hidden">
         {hasImage ? (
           <>
@@ -68,10 +69,10 @@ const ProductCard = ({ product }) => {
               src={product.images[0].url}
               alt={product.title}
               onError={() => setImgError(true)}
-              className="w-full aspect-[4/3] object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {totalImages > 1 && (
-              <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+              <span className="absolute bottom-3 right-3 bg-black/50 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-sm">
                 +{totalImages - 1} more
               </span>
             )}
@@ -80,12 +81,14 @@ const ProductCard = ({ product }) => {
           <NoImagePlaceholder />
         )}
       </div>
-
-      {/* Content */}
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-bold text-slate-900 text-sm leading-snug mb-1 line-clamp-1">{product.title}</h3>
-        <p className="text-xs text-slate-400 font-medium leading-relaxed line-clamp-2 flex-1">{product.description}</p>
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+      <div className="p-5 flex flex-col flex-1">
+        <h3 className="font-bold text-slate-900 text-sm leading-snug mb-2 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+          {product.title}
+        </h3>
+        <p className="text-xs text-slate-400 font-medium line-clamp-2 flex-1 mb-4">
+          {product.description}
+        </p>
+        <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
           <span className="text-base font-extrabold text-indigo-600 tracking-tight">
             {symbol}{Number(product.price?.amount).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
           </span>
@@ -100,19 +103,19 @@ const ProductCard = ({ product }) => {
 
 // ─── Empty State ─────────────────────────────────────────────────────────────
 const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center py-20 text-center">
-    <div className="p-5 bg-indigo-50 rounded-2xl text-indigo-300 mb-5">
-      <svg className="w-12 h-12" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+  <div className="flex flex-col items-center justify-center py-24 text-center">
+    <div className="p-8 bg-indigo-50 rounded-[3rem] text-indigo-300 mb-8 inline-block border border-white/20">
+      <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016 2.993 2.993 0 002.25-1.016 3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
       </svg>
     </div>
-    <h2 className="text-xl font-extrabold text-slate-800 mb-1.5">No products yet</h2>
-    <p className="text-sm font-medium text-slate-400 max-w-xs mb-6">
+    <h2 className="text-2xl font-extrabold text-slate-900 mb-2">No products yet</h2>
+    <p className="text-sm text-slate-400 max-w-xs mb-8">
       Your boutique is empty. Start by adding your first product to showcase your collection.
     </p>
     <Link
       to="/seller/product/create"
-      className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.98]"
+      className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-[2rem] text-sm transition-all shadow-xl shadow-indigo-600/25 active:scale-[0.98]"
     >
       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -133,13 +136,11 @@ const Dashboard = () => {
     handleGetSellerProduct().finally(() => setIsLoading(false))
   }, [])
 
-  // Derived stats
   const totalProducts = products.length
   const inrProducts = products.filter(p => p.price?.currency === "INR")
   const totalValue = inrProducts.reduce((acc, p) => acc + (Number(p.price?.amount) || 0), 0)
   const totalImages = products.reduce((acc, p) => acc + (p.images?.length || 0), 0)
 
-  // Filtered products
   const filteredProducts = products.filter(p =>
     p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -147,20 +148,21 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 md:py-10">
+      <Navbar />
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-16">
         {/* ── Header ── */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-10">
           <div>
             <p className="text-[11px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Seller Portal</p>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">My Products</h1>
-            <p className="text-xs font-medium text-slate-400 mt-0.5">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">My Products</h1>
+            <p className="text-sm text-slate-500 font-medium mt-1">
               Manage and monitor your boutique's full inventory.
             </p>
           </div>
           <Link
             to="/seller/product/create"
-            className="self-start sm:self-auto inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.98] flex-shrink-0"
+            className="inline-flex items-center gap-2 px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-[2rem] text-sm transition-all shadow-xl shadow-indigo-600/25 active:scale-[0.98] flex-shrink-0"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -170,7 +172,7 @@ const Dashboard = () => {
         </div>
 
         {/* ── Stats ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
           <StatCard
             icon={
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -203,9 +205,9 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* ── Search / Filter Bar ── */}
+        {/* ── Search ── */}
         {!isLoading && totalProducts > 0 && (
-          <div className="relative mb-6">
+          <div className="relative mb-8">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -215,8 +217,8 @@ const Dashboard = () => {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search products by title or description..."
-              className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all bg-white placeholder:text-slate-400"
+              placeholder="Search products by title or description…"
+              className="w-full pl-11 pr-4 py-3.5 border border-slate-200 rounded-[2rem] text-sm text-slate-800 outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all bg-white placeholder:text-slate-400 shadow-sm"
             />
             {searchQuery && (
               <button
@@ -239,15 +241,15 @@ const Dashboard = () => {
         ) : totalProducts === 0 ? (
           <EmptyState />
         ) : filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-slate-400 font-semibold text-sm">No products match your search.</p>
-            <button onClick={() => setSearchQuery("")} className="mt-3 text-indigo-600 font-semibold text-xs hover:underline">
+            <button onClick={() => setSearchQuery("")} className="mt-4 text-indigo-600 font-bold text-xs hover:underline">
               Clear search
             </button>
           </div>
         ) : (
           <>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-5">
               Showing {filteredProducts.length} of {totalProducts} products
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -257,7 +259,6 @@ const Dashboard = () => {
             </div>
           </>
         )}
-
       </div>
     </div>
   )
